@@ -1,0 +1,38 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: >-
+  water-exergy nexus of power and water production
+  technologies
+message: >-
+  Please cite the following article if you use this dataset:
+  https://doi.org/10.1016/j.enconman.2023.116960
+type: dataset
+authors:
+  - given-names: 'Amir '
+    family-names: 'Tayerani '
+    email: tayerani@khu.ac.kr
+    affiliation: Kyung Hee University
+    name-particle: Saman
+    name-suffix: Charmchi
+  - given-names: 'Pouya '
+    family-names: Ifaei
+    email: pouya.ifaei@khu.ac.kr
+    affiliation: Kyung Hee University
+    orcid: 'https://orcid.org/0000-0002-6898-8583'
+identifiers:
+  - type: doi
+    value: 10.1016/j.enconman.2023.116960
+    description: >-
+      It belongs to the pertinent article in a peer-reviewed
+      journal.
+repository-code: 'https://github.com/tayerani/WEx_Dataset'
+keywords:
+  - Desalination and wastewater treatment
+  - Power production
+  - Renewable energy
+  - Water-exergy nexus
+  - Life cycle analysis
+license: Apache-2.0
+date-released: '2023-04-01'
