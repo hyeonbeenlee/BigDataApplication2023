@@ -166,14 +166,14 @@ def WP(data):
     return np.nan_to_num(Wp.astype(np.float64))
 
 
-def RandomSum(wf, wp):
+def RandomSum(wf, wp, data):
     wf = wf.reshape(-1, 1)
     wp = wp.reshape(-1, 1)
     # np.random.seed(0)
 
     # Random values according to Step 4
-    rv = np.zeros((data.shape[0], 10)).astype(np.float64)
-    fu = np.zeros((data.shape[0], 10)).astype(np.float64)
+    rv = np.ones((data.shape[0], 10)).astype(np.float64)
+    fu = np.ones((data.shape[0], 10)).astype(np.float64)
 
     rv[np.where(data[:, 1] == "CSP")] = np.random.uniform(
         0.8, 1.2, size=(np.where(data[:, 1] == "CSP")[0].shape[0], 10)
@@ -214,7 +214,7 @@ df = pd.read_excel("HW1/data/Power plot data.xlsx")
 
 wf = WF(data)
 wp = WP(data)
-wf, wp = RandomSum(wf, wp)
+wf, wp = RandomSum(wf, wp, data)
 
 # sum values
 consumption = data[np.where(data[:, 0] == "Consumption")]
