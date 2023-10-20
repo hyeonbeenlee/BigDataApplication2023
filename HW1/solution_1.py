@@ -10,7 +10,7 @@ def WF(data):
     wff = data[:, -1]
 
     # Assumptions in Step 3
-    ucf = np.full_like(data[:, 0], np.nan)
+    ucf = np.full_like(data[:, 0], 1.)
     lhv = np.full_like(data[:, 0], np.nan)
     exf = np.full_like(data[:, 0], np.nan)
     lt = np.full_like(data[:, 0], np.nan)
@@ -37,6 +37,7 @@ def WF(data):
         np.where((data[:, 1] == "PV") | (data[:, 1] == "Wind") | (data[:, 1] == "CSP"))
     ] = 15
 
+    # Sampled from uniform dist. with range given in Table 3
     nex[np.where(data[:, 1] == "Coal")] = np.random.uniform(
         0.218, 0.53, size=np.where(data[:, 1] == "Coal")[0].shape
     )
@@ -59,6 +60,11 @@ def WF(data):
         0.0251, 0.15, size=np.where(data[:, 1] == "PV")[0].shape
     )
 
+    """
+    wff: given in excel
+    ucf, lhv, exf, lt: given in Step 2
+    nex: sampled from Table 3
+    """
     Wf = (wff * ucf * lhv) / (exf * nex * lt)
 
     # Assumptions in Step 2
@@ -67,11 +73,13 @@ def WF(data):
     # Wf = Wf[np.where((data[:, 1] == "Natural gas") | (data[:, 1] == "Coal"))]
     # data = data[np.where((data[:, 1] == "Natural gas") | (data[:, 1] == "Coal"))]
 
-    # df['ucf']=ucf
-    # df['lhv']=lhv
-    # df['exf']=exf
-    # df['nex']=nex
-    # df['lt']=lt
+    df['WF_wff']=wff
+    df['WF_ucf']=ucf
+    df['WF_lhv']=lhv
+    df['WF_exf']=exf
+    df['WF_nex']=nex
+    df['WF_lt']=lt
+    df['WF']=Wf
     return np.nan_to_num(Wf.astype(np.float64))
 
 
@@ -82,14 +90,27 @@ def WP(data):
     wfp = data[:, -1]
 
     # Assumptions in Step 3
-    ucf = np.full_like(data[:, 0], np.nan)
-    av_cf = np.full_like(data[:, 0], np.nan)
-    lt = np.full_like(data[:, 0], np.nan)
-    nex = np.full_like(data[:, 0], np.nan)
+    ucf = np.full_like(data[:, 0], 1.)
+    av_cf = np.full_like(data[:, 0], 0.)
+    lt = np.full_like(data[:, 0], 0.)
+    nex = np.full_like(data[:, 0], 0.)
 
     ucf[np.where(data[:, 1] == "Natural gas")] = 1
     ucf[np.where(data[:, 1] == "Coal")] = 1
+    
+    lt[
+        np.where(
+            (data[:, 1] == "Coal")
+            | (data[:, 1] == "Natural gas")
+            | (data[:, 1] == "Nuclear")
+            | (data[:, 1] == "Geothermal")
+        )
+    ] = 30
+    lt[
+        np.where((data[:, 1] == "PV") | (data[:, 1] == "Wind") | (data[:, 1] == "CSP"))
+    ] = 15
 
+    # Sampled from uniform distribution in range given in Table 3
     av_cf[np.where(data[:, 1] == "Coal")] = np.random.uniform(
         0.6046, 1, size=np.where(data[:, 1] == "Coal")[0].shape
     )
@@ -111,18 +132,6 @@ def WP(data):
     av_cf[np.where(data[:, 1] == "PV")] = np.random.uniform(
         0.0448, 1, size=np.where(data[:, 1] == "PV")[0].shape
     )
-
-    lt[
-        np.where(
-            (data[:, 1] == "Coal")
-            | (data[:, 1] == "Natural gas")
-            | (data[:, 1] == "Nuclear")
-            | (data[:, 1] == "Geothermal")
-        )
-    ] = 30
-    lt[
-        np.where((data[:, 1] == "PV") | (data[:, 1] == "Wind") | (data[:, 1] == "CSP"))
-    ] = 15
 
     nex[np.where(data[:, 1] == "Coal")] = np.random.uniform(
         0.218, 0.53, size=np.where(data[:, 1] == "Coal")[0].shape
@@ -148,21 +157,23 @@ def WP(data):
 
     Wp = (wfp * ucf) / (av_cf * nex * lt)
 
-    # df['ucf']=ucf
-    # df['av_cf']=av_cf
-    # df['nex']=nex
-    # df['lt']=lt
+    df['WP_wfp']=wfp
+    df['WP_ucf']=ucf
+    df['WP_av_cf']=av_cf
+    df['WP_nex']=nex
+    df['WP_lt']=lt
+    df['WP']=Wp
     return np.nan_to_num(Wp.astype(np.float64))
 
 
 def RandomSum(wf, wp):
     wf = wf.reshape(-1, 1)
     wp = wp.reshape(-1, 1)
-    np.random.seed(0)
+    # np.random.seed(0)
 
     # Random values according to Step 4
-    rv = np.full((data.shape[0], 10), 0.0)
-    fu = np.full((data.shape[0], 10), 0.0)
+    rv = np.zeros((data.shape[0], 10)).astype(np.float64)
+    fu = np.zeros((data.shape[0], 10)).astype(np.float64)
 
     rv[np.where(data[:, 1] == "CSP")] = np.random.uniform(
         0.8, 1.2, size=(np.where(data[:, 1] == "CSP")[0].shape[0], 10)
@@ -186,6 +197,11 @@ def RandomSum(wf, wp):
 
     Wf = (fu * wf).sum(axis=1)
     Wp = (rv * wp).sum(axis=1)
+    
+    df['RAND_FU']=fu.mean(-1)
+    df['RAND_WF']=wf
+    df['RAND_RV']=rv.mean(-1)
+    df['RAND_WP']=wp
     return Wf, Wp
 
 
@@ -207,13 +223,11 @@ wf_final = {"consumption": [], "withdrawal": []}
 wp_final = {"consumption": [], "withdrawal": []}
 for k in wf_final.keys():
     for c in ["Coal", "Natural gas", "Nuclear", "Geothermal", "PV", "Wind", "CSP"]:
-        wf_final[k].append(wf[np.where((data[:, 1] == c))].sum())
-        wp_final[k].append(wp[np.where((data[:, 1] == c))].sum())
+        wf_final[k].append(wf[np.where((data[:, 1] == c))].sum().round(2))
+        wp_final[k].append(wp[np.where((data[:, 1] == c))].sum().round(2))
 print(wf_final)
 print(wp_final)
 
-df["WF"] = wf
-df["WP"] = wp
 df.to_excel("HW1/result_raw.xlsx", index=False)
 
 
