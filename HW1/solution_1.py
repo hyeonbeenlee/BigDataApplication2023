@@ -10,7 +10,7 @@ def WF(data):
     wff = data[:, -1]
 
     # Assumptions in Step 3
-    ucf = np.full_like(data[:, 0], 1.)
+    ucf = np.full_like(data[:, 0], 1.0)
     lhv = np.full_like(data[:, 0], np.nan)
     exf = np.full_like(data[:, 0], np.nan)
     lt = np.full_like(data[:, 0], np.nan)
@@ -73,13 +73,13 @@ def WF(data):
     # Wf = Wf[np.where((data[:, 1] == "Natural gas") | (data[:, 1] == "Coal"))]
     # data = data[np.where((data[:, 1] == "Natural gas") | (data[:, 1] == "Coal"))]
 
-    df['WF_wff']=wff
-    df['WF_ucf']=ucf
-    df['WF_lhv']=lhv
-    df['WF_exf']=exf
-    df['WF_nex']=nex
-    df['WF_lt']=lt
-    df['WF']=Wf
+    df["WF_wff"] = wff
+    df["WF_ucf"] = ucf
+    df["WF_lhv"] = lhv
+    df["WF_exf"] = exf
+    df["WF_nex"] = nex
+    df["WF_lt"] = lt
+    df["WF"] = Wf
     return np.nan_to_num(Wf.astype(np.float64))
 
 
@@ -90,14 +90,14 @@ def WP(data):
     wfp = data[:, -1]
 
     # Assumptions in Step 3
-    ucf = np.full_like(data[:, 0], 1.)
-    av_cf = np.full_like(data[:, 0], 0.)
-    lt = np.full_like(data[:, 0], 0.)
-    nex = np.full_like(data[:, 0], 0.)
+    ucf = np.full_like(data[:, 0], 1.0)
+    av_cf = np.full_like(data[:, 0], 0.0)
+    lt = np.full_like(data[:, 0], 0.0)
+    nex = np.full_like(data[:, 0], 0.0)
 
     ucf[np.where(data[:, 1] == "Natural gas")] = 1
     ucf[np.where(data[:, 1] == "Coal")] = 1
-    
+
     lt[
         np.where(
             (data[:, 1] == "Coal")
@@ -157,12 +157,12 @@ def WP(data):
 
     Wp = (wfp * ucf) / (av_cf * nex * lt)
 
-    df['WP_wfp']=wfp
-    df['WP_ucf']=ucf
-    df['WP_av_cf']=av_cf
-    df['WP_nex']=nex
-    df['WP_lt']=lt
-    df['WP']=Wp
+    df["WP_wfp"] = wfp
+    df["WP_ucf"] = ucf
+    df["WP_av_cf"] = av_cf
+    df["WP_nex"] = nex
+    df["WP_lt"] = lt
+    df["WP"] = Wp
     return np.nan_to_num(Wp.astype(np.float64))
 
 
@@ -197,11 +197,11 @@ def RandomSum(wf, wp):
 
     Wf = (fu * wf).sum(axis=1)
     Wp = (rv * wp).sum(axis=1)
-    
-    df['RAND_FU']=fu.mean(-1)
-    df['RAND_WF']=wf
-    df['RAND_RV']=rv.mean(-1)
-    df['RAND_WP']=wp
+
+    df["RAND_FU"] = fu.mean(-1)
+    df["RAND_WF"] = wf
+    df["RAND_RV"] = rv.mean(-1)
+    df["RAND_WP"] = wp
     return Wf, Wp
 
 
@@ -219,12 +219,16 @@ wf, wp = RandomSum(wf, wp)
 # sum values
 consumption = data[np.where(data[:, 0] == "Consumption")]
 withdrawal = data[np.where(data[:, 0] == "Withdrawal")]
-wf_final = {"consumption": [], "withdrawal": []}
-wp_final = {"consumption": [], "withdrawal": []}
+wf_final = {"Consumption": [], "Withdrawal": []}
+wp_final = {"Consumption": [], "Withdrawal": []}
 for k in wf_final.keys():
     for c in ["Coal", "Natural gas", "Nuclear", "Geothermal", "PV", "Wind", "CSP"]:
-        wf_final[k].append(wf[np.where((data[:, 1] == c))].sum().round(2))
-        wp_final[k].append(wp[np.where((data[:, 1] == c))].sum().round(2))
+        wf_final[k].append(
+            wf[np.where((data[:, 1] == c) & (data[:, 0] == k))].sum().round(2)
+        )
+        wp_final[k].append(
+            wp[np.where((data[:, 1] == c) & (data[:, 0] == k))].sum().round(2)
+        )
 print(wf_final)
 print(wp_final)
 
