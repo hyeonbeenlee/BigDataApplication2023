@@ -139,7 +139,7 @@ def spearman_corr(df):
 
 def visualize_corr(corr, df):
     fig, ax = plt.subplots(figsize=(8, 8))
-    img=ax.matshow(corr)
+    img = ax.matshow(corr)
     ax.set_xticks(range(df.shape[1]))
     ax.set_yticks(range(df.shape[1]))
     ax.set_xticklabels(df.columns, rotation=90)
