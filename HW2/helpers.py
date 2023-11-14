@@ -149,3 +149,22 @@ def visualize_corr(corr, df):
     fig.colorbar(img)
     plt.show()
     print(corr.round(3))
+    
+def moving_avg(df):
+    df = df.copy()
+    df = df.rolling(window=10000, min_periods=1, axis=0).mean()
+    return df
+
+def decompose(df):
+    df = df.copy()
+    trend=moving_avg(df.copy())
+    seasonal=df-trend
+    return trend, seasonal
+
+def measure_ts_strength(trend, seasonal):
+    """
+    https://otexts.com/fpp2/seasonal-strength.html
+    """
+    Ft=np.maximum(np.zeros_like(trend.var()), 1-seasonal.var()/(trend+seasonal).var())
+    Fs=np.maximum(np.zeros_like(seasonal.var()), 1-seasonal.var()/(trend+seasonal).var())
+    return Ft, Fs
