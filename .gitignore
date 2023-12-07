@@ -1,4 +1,6 @@
 *DS_Store
 *.zip
 *.xlsx
+*.dat
+*.csv
 */__pycache__/*
