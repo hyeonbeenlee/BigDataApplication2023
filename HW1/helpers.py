@@ -1,6 +1,17 @@
 import pandas as pd
 import numpy as np
-from HW1.helpers import *
+
+
+def check_unique_values(df):
+    print(f"{'='*100}")
+    for c in df.columns:
+        u = pd.unique(df[c])
+        if not u.dtype == np.number:
+            print(f'"{c}": {u}')
+        else:
+            print(f'"{c}": NUMERIC VALUES')
+        print()
+    print(f"{'='*100}")
 
 
 # Eq 1
@@ -10,7 +21,7 @@ def WF(data):
     wff = data[:, -1]
 
     # Assumptions in Step 3
-    ucf = np.full_like(data[:, 0], 1.0)
+    ucf = np.full_like(data[:, 0], 1.0)  # Unit conversion factors to 1
     lhv = np.full_like(data[:, 0], np.nan)
     exf = np.full_like(data[:, 0], np.nan)
     lt = np.full_like(data[:, 0], np.nan)
@@ -73,15 +84,7 @@ def WF(data):
     # Wf = Wf[np.where((data[:, 1] == "Natural gas") | (data[:, 1] == "Coal"))]
     # data = data[np.where((data[:, 1] == "Natural gas") | (data[:, 1] == "Coal"))]
 
-    df["WF_wff"] = wff
-    df["WF_ucf"] = ucf
-    df["WF_lhv"] = lhv
-    df["WF_exf"] = exf
-    df["WF_nex"] = nex
-    df["WF_lt"] = lt
-    df["WF"] = Wf
     return np.nan_to_num(Wf.astype(np.float64))
-
 
 # Eq 2
 def WP(data):
@@ -90,7 +93,7 @@ def WP(data):
     wfp = data[:, -1]
 
     # Assumptions in Step 3
-    ucf = np.full_like(data[:, 0], 1.0)
+    ucf = np.full_like(data[:, 0], 1.0)  # Unit conversion factors to 1
     av_cf = np.full_like(data[:, 0], 0.0)
     lt = np.full_like(data[:, 0], 0.0)
     nex = np.full_like(data[:, 0], 0.0)
@@ -157,16 +160,9 @@ def WP(data):
 
     Wp = (wfp * ucf) / (av_cf * nex * lt)
 
-    df["WP_wfp"] = wfp
-    df["WP_ucf"] = ucf
-    df["WP_av_cf"] = av_cf
-    df["WP_nex"] = nex
-    df["WP_lt"] = lt
-    df["WP"] = Wp
     return np.nan_to_num(Wp.astype(np.float64))
 
-
-def RandomSum(wf, wp, data):
+def RandomWeightedSum(wf, wp, data):
     wf = wf.reshape(-1, 1)
     wp = wp.reshape(-1, 1)
     # np.random.seed(0)
@@ -198,50 +194,36 @@ def RandomSum(wf, wp, data):
     Wf = (fu * wf).sum(axis=1)
     Wp = (rv * wp).sum(axis=1)
 
-    df["RAND_FU"] = fu.mean(-1)
-    df["RAND_WF"] = wf
-    df["RAND_RV"] = rv.mean(-1)
-    df["RAND_WP"] = wp
     return Wf, Wp
 
+def Main(verbose: bool = True):
+    # Used pandas only for reading xlsx file
+    data = pd.read_excel("HW1/data/Power plot data.xlsx").to_numpy()
+    
+    technologies = ["Coal", "Natural gas", "Nuclear", "Geothermal", "PV", "Wind", "CSP"]
 
-# ["category", "type", "cycle", "label4", "label5", "label6", "value"]
-data = pd.read_excel("HW1/data/Power plot data.xlsx").to_numpy()
-df = pd.read_excel("HW1/data/Power plot data.xlsx")
+    wf = WF(data)
+    wp = WP(data)
+    wf, wp = RandomWeightedSum(wf, wp, data)
 
-# consumption = data[np.where(data[:, 0] == "Consumption")]
-# withdrawal = data[np.where(data[:, 0] == "Withdrawal")]
+    # sum values
+    wf_final = {"Consumption": [], "Withdrawal": []}
+    wp_final = {"Consumption": [], "Withdrawal": []}
+    for k in wf_final.keys():
+        for c in technologies:
+            wf_final[k].append(
+                wf[np.where((data[:, 1] == c) & (data[:, 0] == k))].sum().round(2)
+            )
+            wp_final[k].append(
+                wp[np.where((data[:, 1] == c) & (data[:, 0] == k))].sum().round(2)
+            )
 
-wf = WF(data)
-wp = WP(data)
-wf, wp = RandomSum(wf, wp, data)
-
-# sum values
-consumption = data[np.where(data[:, 0] == "Consumption")]
-withdrawal = data[np.where(data[:, 0] == "Withdrawal")]
-wf_final = {"Consumption": [], "Withdrawal": []}
-wp_final = {"Consumption": [], "Withdrawal": []}
-for k in wf_final.keys():
-    for c in ["Coal", "Natural gas", "Nuclear", "Geothermal", "PV", "Wind", "CSP"]:
-        wf_final[k].append(
-            wf[np.where((data[:, 1] == c) & (data[:, 0] == k))].sum().round(2)
-        )
-        wp_final[k].append(
-            wp[np.where((data[:, 1] == c) & (data[:, 0] == k))].sum().round(2)
-        )
-print(wf_final)
-print(wp_final)
-
-df.to_excel("HW1/result_raw.xlsx", index=False)
-
-
-# wf_consumption = WF(consumption)
-# wf_withdrawal = WF(withdrawal)
-
-# wp_consumption = WP(consumption)
-# wp_withdrawal = WP(withdrawal)
-
-# wex_consumption = WEx(wf_consumption, wp_consumption)
-# wex_withdrawal = WEx(wf_withdrawal, wp_withdrawal)
-
-pass
+    # Print
+    if verbose:
+        index = ["WP", "WF"]
+        for idx_v, value in enumerate([wp_final.items(), wf_final.items()]):
+            for k, v in value:
+                for idx_t, t in enumerate(technologies):
+                    print(f"{index[idx_v]}_{k}_{t}: {v[idx_t]}")
+                print('='*100)
+    return wf_final, wp_final, technologies

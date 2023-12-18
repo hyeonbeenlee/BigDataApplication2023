@@ -26,7 +26,7 @@ def convert_to_csv():
 
 def read_describe():
     series_list = []
-    for idx, path in enumerate(glob.glob("Data/*.csv")):
+    for idx, path in enumerate(glob.glob("HW2/Data/*.csv")):
         data = pd.read_csv(path, names=[_get_filename(path)]).reset_index(
             drop=True
         )  # series

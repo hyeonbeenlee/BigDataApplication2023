@@ -66,7 +66,7 @@ def kaggle_resample():
 def read_sum_resampled():
     kaggle = []
     ukedc = []
-    for p in sorted(glob.glob("data_hourly/*.csv")):
+    for p in sorted(glob.glob("HW3/data_hourly/*.csv")):
         data = pd.read_csv(p, index_col="datetime")
         data.index = pd.to_datetime(data.index)
         data = data.interpolate(method="nearest")

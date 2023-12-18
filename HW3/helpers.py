@@ -7,7 +7,7 @@ from HW2.helpers import _get_filename
 
 def read_describe_with_timestamp():
     series_list = []
-    for idx, path in enumerate(glob.glob("../HW2/Data/*.csv")):
+    for idx, path in enumerate(glob.glob("HW2/Data/*.csv")):
         if "TimeStamp" in path:
             datetime = pd.read_csv(
                 path,
